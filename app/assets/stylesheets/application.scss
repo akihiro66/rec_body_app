@@ -1,0 +1,14 @@
+/*
+ *= require flatpickr
+ *= require_tree .
+ *= require_self
+ */
+
+@import "bootstrap/scss/bootstrap";
+
+// 全体
+.graph-container {
+  @extend .container-fluid;
+  max-width: 768px;
+  padding: 1rem;
+}
