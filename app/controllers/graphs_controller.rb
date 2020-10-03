@@ -1,6 +1,7 @@
 class GraphsController < ApplicationController
   def index
-    gon.weight_records = Graph.chart_data(current_user)
+    gon.graph_records = Graph.chart_data(current_user)
+    gon.recorded_dates = current_user.graphs.map(&:date)
   end
 
   def create
@@ -33,7 +34,7 @@ class GraphsController < ApplicationController
   private
 
   def graph_params
-    params.require(:graph).permit(:date, :weight)
+    params.require(:graph).permit(:date, :weight, :pedometer)
   end
 
 end
