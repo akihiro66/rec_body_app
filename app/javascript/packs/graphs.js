@@ -138,7 +138,7 @@ document.addEventListener('turbolinks:load', () => {
       if (!chartWeight) {
         // グラフが存在しないときは，作成する
         chartWeight = new Chart(chartWeightContext, {
-          type: 'line',
+          type: 'bar',
           data: graphData,
           options: options
         })
