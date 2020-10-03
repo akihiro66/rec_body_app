@@ -9,8 +9,8 @@ document.addEventListener('turbolinks:load', () => {
     const maxDate = (date1, date2) => (date1 > date2) ? date1 : date2
 
     // データの初日・最終日
-    const START_DATE = convertDate(gon.weight_records[0].date)
-    const END_DATE = convertDate(gon.weight_records[gon.weight_records.length - 1].date)
+    const START_DATE = convertDate(gon.graph_records[0].date)
+    const END_DATE = convertDate(gon.graph_records[gon.graph_records.length - 1].date)
 
     const TODAY = convertDate(new Date())
     const A_WEEK_AGO = new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate() - 6)
@@ -62,7 +62,7 @@ document.addEventListener('turbolinks:load', () => {
     // 期間を指定してグラフを描く
     const drawGraph = (from, to) => {
       // from から to までの期間のデータに絞る
-      let records = gon.weight_records.filter((record) => {
+      let records = gon.graph_records.filter((record) => {
         let date = convertDate(record.date)
         return from <= date && date <= to
       })
@@ -77,43 +77,75 @@ document.addEventListener('turbolinks:load', () => {
       // 体重のみのデータを作成
       let weights = records.map((record) => record.weight)
 
-      let weightData = {
-        labels: dates,
-        datasets: [{
-          label: '体重(kg)',
-          data: weights,
-          backgroundColor: 'rgba(255, 99, 132, 0.2)',
-          borderColor: 'rgba(255, 99, 132, 1)',
-          borderWidth: 1,
-          spanGaps: true
-        }]
+      let weightDatasets = {
+        type: 'line',
+        label: '体重(kg)',
+        data: weights,
+        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+        borderColor: 'rgba(255, 99, 132, 1)',
+        borderWidth: 1,
+        spanGaps: true,
+        fill: false,
+        yAxisID: 'y-axis-weight'
       }
 
-      let weightOption = {
+      let pedometers = records.map((record) => record.pedometer)
+
+      let pedometerDatasets = {
+        type: 'bar',
+        label: '歩数(歩)',
+        data: pedometers,
+        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+        borderColor: 'rgba(54, 162, 235, 1)',
+        borderWidth: 1,
+        spanGaps: true,
+        yAxisID: 'y-axis-pedometer',
+      }
+
+      let graphData = {
+        labels: dates,
+        datasets: [weightDatasets, pedometerDatasets]
+      }
+
+      let options = {
         tooltips: {
           callbacks: {
-            // ホバー（スマホならタップ）時のラベル表示を変更
             title: function (tooltipItems) {
               return tooltipItems[0].xLabel.replace(/^(\d+).(\d+)$/, ' $1 月 $2 日')
-            },
-            label: function (tooltipItem) {
-              return '体重: ' + tooltipItem.yLabel + 'kg'
             }
           }
+        },
+        scales: {
+          yAxes: [{
+              id: 'y-axis-weight', // Y軸のID
+              position: 'left', // どちら側に表示される軸か？
+            },
+            {
+              id: 'y-axis-pedometer',
+              position: 'right',
+              gridLines: {
+                display: false,
+              },
+              ticks: {
+                // y軸のメモリを 0 からスタートに強制
+                beginAtZero: true
+              },
+            }
+          ]
         }
       }
 
       if (!chartWeight) {
         // グラフが存在しないときは，作成する
         chartWeight = new Chart(chartWeightContext, {
-          type: 'line',
-          data: weightData,
-          options: weightOption
+          type: 'bar',
+          data: graphData,
+          options: options
         })
       } else {
         // グラフが存在するときは，更新する
-        chartWeight.data = weightData
-        chartWeight.options = weightOption
+        chartWeight.data = graphData
+        chartWeight.options = options
         chartWeight.update()
       }
     }
@@ -153,9 +185,11 @@ document.addEventListener('turbolinks:load', () => {
     // 編集モーダルで日付を選択したときに，記録された体重を表示する関数
     const editCalendar = document.getElementById('edit-calendar')
     const editWeight = document.getElementById('edit-weight')
+    const editPedometer = document.getElementById('edit-pedometer')
     const inputWeight = () => {
-      let record = gon.weight_records.find((record) => record.date === editCalendar.value)
+      let record = gon.graph_records.find((record) => record.date === editCalendar.value)
       editWeight.value = record.weight
+      editPedometer.value = record.pedometer
     }
 
     // 記録編集用のカレンダー

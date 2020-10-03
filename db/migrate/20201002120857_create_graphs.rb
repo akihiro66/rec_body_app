@@ -1,4 +1,4 @@
-class CreateGraphs < ActiveRecord::Migration[5.2]
+class CreateGraphs < ActiveRecord::Migration[6.0]
   def change
     create_table :graphs do |t|
       t.date :date, null: false
